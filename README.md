@@ -1,7 +1,6 @@
 # Binance-Alert-NewHigh
 
-This script notifies the user via Telegram whenever an USDT cryptocurrency pair makes a new 30 day, 60 day or all time high.  
-For each cryptocurrency pair, the notification only happens once a day.
+This script notifies the user via Telegram whenever an USDT cryptocurrency pair makes a new 30 day, 60 day or all time high. For each cryptocurrency pair, the notification only happens once a day.
 
 ## Description
 
