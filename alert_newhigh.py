@@ -22,7 +22,6 @@ client = Client(api_key, api_secret)
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 
 def setup_logger(name, log_file, level):
-    """To setup as many loggers as you want"""
     handler = logging.FileHandler(log_file)        
     handler.setFormatter(formatter)
     logger = logging.getLogger(name)
@@ -62,9 +61,10 @@ def main():
     
     def handle_socket_message(msg):
         global record, record_time, initialisation_phase, database_phase, initialisation_1min, first_run, ticker_list, ticker_high_dict, streams
+
         # check for new tickers once a day and add to a list
         now = datetime.datetime.now()
-        if record_time.day != now.day:
+        if record_time.day != now.day and now.hour == 8:
             record = True
             initialisation_phase = True
             record_time = datetime.datetime.now()
@@ -76,7 +76,7 @@ def main():
             initialisation_phase = False
             record = False
             database_phase = True
-            loggerdailyhigh.info(f"Obtained {len(ticker_list)} symbols, updating database...")
+            loggerdailyhigh.info(f"There are {len(ticker_list)} symbols, updating database...")
 
         # record symbol and price of desired tickers into a list
         if msg['stream'] == '!ticker@arr' and record:
