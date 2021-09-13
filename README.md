@@ -17,7 +17,7 @@ This shows the information generated in the log file:
 ![Screenshot](images/LogFile.png)
 
 This shows the Telegram messages received when an alert is triggered:
-![Screenshot](images/TelegramMessage.jpg | width=300)
+<img src="images/TelegramMessage.jpg" width="300">
 
 ## Technologies Used
 
