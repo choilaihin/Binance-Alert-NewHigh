@@ -8,13 +8,15 @@ Description:
 3. Get historical daily candlesticks and store into a SQLite database table for each ticker
 4. Store the 30 day, 60 day, all time high value into a dictionary
 5. Continuously compare current price with the dictionary value and send a Telegram message if greater
-6. Update the list of tickers and database at the start of the next day
+6. Update the list of tickers and database at the start of the next day (UTC +0)
 '''
 
 import config, sqlite3, datetime, time, requests, logging
+# python-binance library
 from binance import ThreadedWebsocketManager
 from binance.client import Client
 
+# Setting up Binance API client
 api_key = config.API_KEY
 api_secret = config.API_SECRET
 client = Client(api_key, api_secret)
@@ -52,6 +54,7 @@ streams = ['!ticker@arr']
 loggerdailyhigh.info("Getting desired symbols...")
 
 def main():
+    # Initialise ThreadedWebsocketManager
     twm = ThreadedWebsocketManager(api_key=api_key, api_secret=api_secret)
     # start is required to initialise its internal loop
     twm.start()
@@ -59,10 +62,11 @@ def main():
     # Exclude undesired symbols such as stable coins
     exclusion_usdt_symbols = ["BUSDUSDT", "USDCUSDT", "TUSDUSDT", "SUSDUSDT","PAXUSDT"]
     
+    # This function is executed whenever streaming data is received.
     def handle_socket_message(msg):
         global record, record_time, initialisation_phase, database_phase, initialisation_1min, first_run, ticker_list, ticker_high_dict, streams
 
-        # check for new tickers once a day and add to a list
+        # check for new tickers at the start of the next day (UTC +0) and add to a list
         now = datetime.datetime.now()
         if record_time.day != now.day and now.hour == 8:
             record = True
@@ -87,7 +91,7 @@ def main():
                     if record and symbol not in ticker_list:
                         ticker_list.append(symbol)
 
-        # update database after getting tickers
+        # update SQLite database after getting tickers
         if database_phase:
             try:
                 conn = sqlite3.connect('daily_database.db')
@@ -111,12 +115,13 @@ def main():
                             CLOSE           REAL    NOT NULL,
                             VOLUME           REAL    NOT NULL);''')
                     
-                    # start date cannot be earlier than what is inside the database
+                    # get historical data, only update previous day's data if database already exist
                     if first_run:
                         candlesticks= client.get_historical_klines(symbol, Client.KLINE_INTERVAL_1DAY, "1 Jan, 2021", "10 Sep, 2021")
                     else:
                         candlesticks= client.get_historical_klines(symbol, Client.KLINE_INTERVAL_1DAY, "2 day ago UTC")
 
+                    # Update database
                     start_inserting = False
                     for candlestick in candlesticks:
                         if start_inserting:
@@ -194,6 +199,7 @@ def main():
                         
  
     stream_name = twm.start_multiplex_socket(callback=handle_socket_message, streams=streams)
+    # Join to main thread to keep the ThreadedWebsocketManager running.
     twm.join()
 
 if __name__ == "__main__":
@@ -204,6 +210,36 @@ if __name__ == "__main__":
 References:
 https://python-binance.readthedocs.io/en/latest/websockets.html#threadedwebsocketmanager-websocket-usage
 https://github.com/binance-us/binance-official-api-docs/blob/master/rest-api.md#klinecandlestick-data
+
+!ticker@arr stream provide the stream's data in the form of a list of dictionary
+{'stream': '!ticker@arr', 
+'data': 
+    [{
+        'e': '24hrTicker', 
+        'E': 1629721891800, 
+        's': 'ETHBTC', 
+        'p': '0.00012900', 
+        'P': '0.195', 
+        'w': '0.06597492', 
+        'x': '0.06627600', 
+        'c': '0.06641800', 
+        'Q': '5.00900000', 
+        'b': '0.06641700', 
+        'B': '1.22200000', 
+        'a': '0.06641800', 
+        'A': '8.52900000', 
+        'o': '0.06628900', 
+        'h': '0.06691000', 
+        'l': '0.06486600', 
+        'v': '132820.90500000', 
+        'q': '8762.84861751', 
+        'O': 1629635491406, 
+        'C': 1629721891406, 
+        'F': 290818106, 
+        'L': 291008032, 
+        'n': 189927}, ...
+    ]
+}
 
 get_historical_klines provides a list of lists (daily candlesticks)
 [
