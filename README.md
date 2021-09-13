@@ -4,12 +4,18 @@ This script notifies the user via Telegram whenever an USDT cryptocurrency pair 
 
 ## Description
 
-1. Start a websocket stream with Binance's ThreadedWebsocketManager to get All Market Tickers
-2. Filter unwanted tickers and store desired ticker symbols into a list
-3. Get historical daily candlesticks and store into a SQLite database table for each ticker
+1. Setup Binance API client and start a websocket API to obtain cryptocurrency market data
+2. Filter away unwanted tickers and store remaining ticker symbols into a list
+3. Get historical daily candlesticks for these tickers and store into a SQLite database table for each ticker
 4. Store the 30 day, 60 day, all time high value into a dictionary
-5. Continuously compare current price with the dictionary value and send a Telegram message if greater
-6. Update the list of tickers and database at the start of the next day
+5. Continuously compare current price with the dictionary values and send a Telegram message if greater than
+6. Update the list of tickers and database at the start of the next day (UTC +0)
+
+## Demo
+
+![Screenshot](images/LogFile.png)
+
+![Screenshot](images/TelegramMessage.jpg)
 
 ## Technologies Used
 
