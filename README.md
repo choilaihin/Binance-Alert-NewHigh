@@ -13,10 +13,10 @@ This script notifies the user via Telegram whenever an USDT cryptocurrency pair 
 
 ## Demo
 
-This shows the information generated in the log file:
+This shows the information generated in the log file:  
 ![Screenshot](images/LogFile.png)
 
-This shows the Telegram messages received when an alert is triggered:
+This shows the Telegram messages received when an alert is triggered:  
 <img src="images/TelegramMessage.jpg" width="300">
 
 ## Technologies Used
