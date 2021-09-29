@@ -1,3 +1,4 @@
 python-binance
 sqlite3
 requests
+python-decouple
