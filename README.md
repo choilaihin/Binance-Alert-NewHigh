@@ -39,5 +39,5 @@ This shows the Telegram messages received when an alert is triggered:
 2. pip install -r requirements.txt
 3. Setup a Binance account and place your Binance API Key and API Secret into a .env file. Refer to https://www.binance.com/en/support/faq/360002502072 for instructions.
 4. Setup a Telegram bot and place your bot token and chatID into the .env file. Refer to https://core.telegram.org/bots#6-botfather for instructions.
-5. Upon executing python main.py, a logging file 'dailyhigh.log' and database file 'daily_database.db' is created. For the first run, it will take around 10 mins to populate the database with historical candlestick data since 1st Jan 2021.
+5. Upon executing python main.py, a logging file 'dailyhigh.log' and database file 'daily_database.db' is created. For the first run, it will take around 1 min to populate the database with historical candlestick data since 1st Jan 2021.
 6. Once the database is populated, the variable first_run can be set to False for subsequent executions of main.py.
