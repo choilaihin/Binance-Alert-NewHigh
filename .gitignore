@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+#logger
+dailyhigh.log
+
+#database
+daily_database.db
