@@ -132,8 +132,10 @@ def main():
 
                     # get historical data, only update previous day's data if database already exist
                     if first_run:
+                        today = datetime.datetime.today()
+                        today_formatted = today.strftime("%d %b, %Y")
                         candlesticks = client.get_historical_klines(
-                            symbol, Client.KLINE_INTERVAL_1DAY, "1 Jan, 2021", "10 Sep, 2021")
+                            symbol, Client.KLINE_INTERVAL_1DAY, "1 Jan, 2021", today_formatted)
                     else:
                         candlesticks = client.get_historical_klines(
                             symbol, Client.KLINE_INTERVAL_1DAY, "2 day ago UTC")
