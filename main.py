@@ -57,11 +57,12 @@ initialisation_1min = record_time + datetime.timedelta(seconds=20)
 initialisation_phase = True
 database_phase = False
 # Set first_run to True if database is not available
-first_run = True
+first_run = False
 ticker_list = []
 ticker_high_dict = {}
 streams = ['!ticker@arr']
 loggerdailyhigh.info("Getting desired symbols...")
+print("Getting desired symbols...")
 
 
 def main():
@@ -172,6 +173,8 @@ def main():
 
             # store daily highs into a dictionary
             # multiple time.time() by 1000 to convert from s to ms, each day differs by 86400000 ms, multiple by x+1 for x day high
+            lower_thres_time_7d = time.time()*1000 - (86400000*8)
+            lower_thres_time_14d = time.time()*1000 - (86400000*15)
             lower_thres_time_30d = time.time()*1000 - (86400000*31)
             lower_thres_time_60d = time.time()*1000 - (86400000*61)
             upper_thres_time = time.time()*1000 - 86400000
@@ -179,6 +182,10 @@ def main():
                 symbol_string = '"' + symbol + '"'
                 try:
                     # obtain the maximum high of the respective intervals (e.g. 30 day, 60 day or all time high)
+                    cursor_7d = conn.execute(
+                        f"SELECT MAX(HIGH) FROM {symbol_string} WHERE TIME > {lower_thres_time_7d} AND TIME < {upper_thres_time}")
+                    cursor_14d = conn.execute(
+                        f"SELECT MAX(HIGH) FROM {symbol_string} WHERE TIME > {lower_thres_time_14d} AND TIME < {upper_thres_time}")
                     cursor_30d = conn.execute(
                         f"SELECT MAX(HIGH) FROM {symbol_string} WHERE TIME > {lower_thres_time_30d} AND TIME < {upper_thres_time}")
                     cursor_60d = conn.execute(
@@ -187,7 +194,7 @@ def main():
                         f"SELECT MAX(HIGH) FROM {symbol_string} WHERE TIME < {upper_thres_time}")
                     # store the values into a dictionary
                     ticker_high_dict[symbol] = {'alltime': cursor_alltime.fetchone(
-                    )[0], '60d': cursor_60d.fetchone()[0], '30d': cursor_30d.fetchone()[0]}
+                    )[0], '60d': cursor_60d.fetchone()[0], '30d': cursor_30d.fetchone()[0], '14d': cursor_14d.fetchone()[0], '7d': cursor_7d.fetchone()[0]}
                 except Exception as e:
                     loggerdailyhigh.info(f"Error for {symbol}: {e}")
             try:
@@ -204,7 +211,7 @@ def main():
                     symbol = ticker["s"]
                     price = float(ticker["c"])
                     # ensure that values are available before comparison
-                    if symbol in ticker_high_dict and price and ticker_high_dict[symbol]['alltime'] and ticker_high_dict[symbol]['60d'] and ticker_high_dict[symbol]['30d']:
+                    if symbol in ticker_high_dict and price and ticker_high_dict[symbol]['alltime'] and ticker_high_dict[symbol]['60d'] and ticker_high_dict[symbol]['30d'] and ticker_high_dict[symbol]['14d'] and ticker_high_dict[symbol]['7d']:
                         if price > ticker_high_dict[symbol]['alltime']:
                             now = datetime.datetime.now()
                             telegram_bot_sendtext(
@@ -229,6 +236,22 @@ def main():
                                 f"{now:%Y-%m-%d %H:%M:%S} {symbol}\n30 day high of {price}")
                             loggerdailyhigh.info(
                                 f'{now:%Y-%m-%d %H:%M:%S} {symbol} reached 30 day high of {price}')
+                            del ticker_high_dict[symbol]
+                            continue
+                        if price > ticker_high_dict[symbol]['14d']:
+                            now = datetime.datetime.now()
+                            telegram_bot_sendtext(
+                                f"{now:%Y-%m-%d %H:%M:%S} {symbol}\n14 day high of {price}")
+                            loggerdailyhigh.info(
+                                f'{now:%Y-%m-%d %H:%M:%S} {symbol} reached 14 day high of {price}')
+                            del ticker_high_dict[symbol]
+                            continue
+                        if price > ticker_high_dict[symbol]['7d']:
+                            now = datetime.datetime.now()
+                            telegram_bot_sendtext(
+                                f"{now:%Y-%m-%d %H:%M:%S} {symbol}\n7 day high of {price}")
+                            loggerdailyhigh.info(
+                                f'{now:%Y-%m-%d %H:%M:%S} {symbol} reached 7 day high of {price}')
                             del ticker_high_dict[symbol]
 
     stream_name = twm.start_multiplex_socket(
